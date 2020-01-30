@@ -4,6 +4,6 @@
 
 see [reader_test.go](reader_test.go)
 
-## Licnese
+## License
 
 The MIT License

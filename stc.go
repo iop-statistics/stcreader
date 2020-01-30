@@ -6,15 +6,21 @@ import (
 )
 
 type fixedHeader struct {
-	Code      uint16  // stc 文件的编号
-	Length    uint16  // stc 文件长度-4
-	DataCount uint16  // 数据数量
-	TypeCount uint8   // 数据类型数量
+	Code      uint16 // stc 文件的编号
+	Length    uint16 // stc 文件长度-4
+	DataCount uint16 // 数据数量
+	TypeCount uint8  // 数据类型数量
 }
 
 type Header struct {
 	fixedHeader
-	Types     []uint8 // 数据类型
+	Types []uint8 // 数据类型
+	Index []IndexEntry
+}
+
+type IndexEntry struct {
+	ID   uint32
+	Addr uint32
 }
 
 type Row struct {
@@ -34,7 +40,6 @@ const (
 	DataTypeDouble
 	DataTypeString
 )
-
 
 func (r Row) Unmarshal(v interface{}) error {
 	rv := reflect.ValueOf(v)

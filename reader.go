@@ -12,14 +12,13 @@ import (
 
 type Reader struct {
 	Header Header
-	Index     []byte  // 索引
-	cnt uint16
-	r *bufio.Reader
+	cnt    uint16
+	r      *bufio.Reader
 }
 
 func NewReader(r io.Reader) (*Reader, error) {
-	rdr :=  &Reader{
-		r: bufio.NewReader(r),
+	rdr := &Reader{
+		r:   bufio.NewReader(r),
 		cnt: 0,
 	}
 
@@ -35,28 +34,23 @@ func (r *Reader) readHeader() error {
 		return err
 	}
 
-	// TODO: 验证 header 正确性
-
 	types := make([]uint8, header.TypeCount)
 	err = binary.Read(r.r, binary.LittleEndian, &types)
 	if err != nil {
 		return err
 	}
 
-	length := int(math.Ceil(float64(header.DataCount) / 100.0) * 8) // count / 100 * 8
+	count := int(math.Ceil(float64(header.DataCount) / 100.0)) // count / 100 * 8
 
-	idx := make([]byte, length)
-	n, err := r.r.Read(idx)
-	if n != length {
-		return errors.New("index length not enough")
-	}
+	idx := make([]IndexEntry, count)
+
+	err = binary.Read(r.r, binary.LittleEndian, &idx)
 
 	if err != nil {
 		return err
 	}
 
-	r.Index = idx
-	r.Header = Header{header, types}
+	r.Header = Header{header, types, idx}
 	return nil
 }
 
@@ -108,7 +102,6 @@ func (r *Reader) readRow() (Row, error) {
 			row.Data = append(row.Data, a)
 		}
 
-
 	}
 
 	r.cnt++
@@ -158,13 +151,13 @@ func (r *Reader) ReadAll(v interface{}) error {
 	}
 
 	rv := reflect.ValueOf(v)
-	if  rv.Kind() != reflect.Ptr || rv.IsNil(){
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
 		return errors.New("v should be a pointer of slice and not nil")
 	}
 
 	pv := rv.Elem()
 
-	slice := reflect.MakeSlice(pv.Type(), int(r.Header.DataCount - r.cnt), int(r.Header.DataCount - r.cnt))
+	slice := reflect.MakeSlice(pv.Type(), int(r.Header.DataCount-r.cnt), int(r.Header.DataCount-r.cnt))
 
 	for r.HasNext() {
 		sv := slice.Index(int(r.cnt))
