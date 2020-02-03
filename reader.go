@@ -61,9 +61,9 @@ func (r *Reader) readRow() (Row, error) {
 		var a interface{}
 		switch v {
 		case DataTypeSByte:
-			a = new(uint8)
-		case DataTypeByte:
 			a = new(int8)
+		case DataTypeByte:
+			a = new(uint8)
 		case DataTypeShort:
 			a = new(int16)
 		case DataTypeUShort:
